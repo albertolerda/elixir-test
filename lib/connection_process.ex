@@ -56,7 +56,6 @@ defmodule ConnectionProcess do
       {:ok, conn, responses} ->
         state = put_in(state.conn, conn)
         state = Enum.reduce(responses, state, &process_response/2)
-        IO.inspect(state)
         {:noreply, state}
     end
   end
@@ -75,7 +74,6 @@ defmodule ConnectionProcess do
 
   defp process_response({:done, request_ref}, state) do
     {%{response: response, from: from}, state} = pop_in(state.requests[request_ref])
-    IO.inspect(response)
     GenServer.reply(from, {:ok, response})
     state
   end

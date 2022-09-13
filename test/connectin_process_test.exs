@@ -2,15 +2,13 @@ defmodule ConnectionProcessTest do
   use ExUnit.Case,async: true
   doctest ConnectionProcess
 
-  setup_all do
-    {:ok, _} = ConnectionProcess.start_link({:http, "65.109.11.42", 8000})
-    :ok
+  test "send a request" do
+    # :timer.sleep(10000)
+    ConnectionProcess.request("GET", "/api", [], []) |> IO.inspect()
+  end
+  test "send another request after a lot of time" do
+    # :timer.sleep(10000)
+    ConnectionProcess.request("GET", "/api", [], []) |> IO.inspect()
   end
 
-  test "send a request" do
-    ConnectionProcess.request("GET", "/api", [], []) |> IO.inspect()
-  end
-  test "send another request" do
-    ConnectionProcess.request("GET", "/api", [], []) |> IO.inspect()
-  end
 end
