@@ -57,8 +57,20 @@ defmodule ConnectionProcess do
         state = put_in(state.conn, conn)
         state = Enum.reduce(responses, state, &process_response/2)
         {:noreply, state}
+      {:error, conn, reason, responses} ->
+        reason = Exception.message(reason)
+        state = put_in(state.conn, conn)
+        # Send a response to all the succesful request
+        state = Enum.reduce(responses, state, &process_response/2)
+
+        # The remaining are failed
+        Enum.map(state.requests, fn {_ref, %{response: _response, from: from}} ->
+          GenServer.reply(from, {:error, reason}) end)
+
+        {:noreply, state}
     end
   end
+
 
   defp process_response({:status, request_ref, status}, state) do
     put_in(state.requests[request_ref].response[:status], status)
