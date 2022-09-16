@@ -5,12 +5,12 @@ defmodule ConnectionProcess do
 
   defstruct [:conn, requests: %{}]
 
-  def start_link({scheme, host, port}) do
-    GenServer.start_link(__MODULE__, {scheme, host, port}, name: __MODULE__)
+  def start_link({scheme, host, port}, name) do
+    GenServer.start_link(__MODULE__, {scheme, host, port}, name: name)
   end
 
-  def request(method, path, headers, body) do
-    GenServer.call(__MODULE__, {:request, method, path, headers, body})
+  def request(name, {method, path, headers, body}) do
+    GenServer.call(name, {:request, method, path, headers, body})
   end
 
   ## Callbacks
@@ -69,10 +69,11 @@ defmodule ConnectionProcess do
   end
 
   defp process_response({:data, request_ref, new_data}, state) do
-    update_in(state.requests[request_ref].response[:data], fn data -> (data || "") <> new_data end)
+    update_in(state.requests[request_ref].response[:data], fn data -> [(data || ""), new_data] end)
   end
 
   defp process_response({:done, request_ref}, state) do
+    state = update_in(state.requests[request_ref].response[:data], fn data -> IO.iodata_to_binary(data) end)
     {%{response: response, from: from}, state} = pop_in(state.requests[request_ref])
     GenServer.reply(from, {:ok, response})
     state

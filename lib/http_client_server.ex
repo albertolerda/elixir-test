@@ -3,6 +3,6 @@ defmodule HttpClientServer do
 
   @impl true
   def start(_type, _args) do
-    {:ok, _} = ConnectionProcess.start_link({:http, "65.109.11.42", 8000})
+    {:ok, _} = ConnectionProcess.start_link({:https, "fcos.interfacer.dyne.org", 443}, Zenswarm)
   end
 end
