@@ -23,7 +23,7 @@ defmodule ConnectionProcess do
         {:ok, state}
 
       {:error, reason} ->
-        {:stop, reason}
+        {:stop, Exception.message(reason)}
     end
   end
 
@@ -72,13 +72,14 @@ defmodule ConnectionProcess do
     update_in(state.requests[request_ref].response[:data], fn data -> [(data || ""), new_data] end)
   end
 
+  defp process_response({:error, request_ref, error}, state) do
+    update_in(state.requests[request_ref].response[:error], error)
+  end
+
   defp process_response({:done, request_ref}, state) do
-    state = update_in(state.requests[request_ref].response[:data], fn data -> IO.iodata_to_binary(data) end)
+    state = update_in(state.requests[request_ref].response[:data], &IO.iodata_to_binary/1)
     {%{response: response, from: from}, state} = pop_in(state.requests[request_ref])
     GenServer.reply(from, {:ok, response})
     state
   end
-
-  # A request can also error, but we're not handling the erroneous responses for
-  # brevity.
 end
